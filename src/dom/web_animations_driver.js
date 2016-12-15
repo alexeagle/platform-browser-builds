@@ -28,7 +28,7 @@ export class WebAnimationsDriver {
         }
         keyframes.forEach((keyframe) => {
             const /** @type {?} */ data = _populateStyles(keyframe.styles, startingStyleLookup);
-            data['offset'] = keyframe.offset;
+            data['offset'] = Math.max(0, Math.min(1, keyframe.offset));
             formattedSteps.push(data);
         });
         // this is a special case when only styles are applied as an

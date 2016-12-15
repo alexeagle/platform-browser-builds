@@ -83,10 +83,10 @@ export function stringify(token) {
         return '' + token;
     }
     if (token.overriddenName) {
-        return token.overriddenName;
+        return `${token.overriddenName}`;
     }
     if (token.name) {
-        return token.name;
+        return `${token.name}`;
     }
     const /** @type {?} */ res = token.toString();
     const /** @type {?} */ newLineIndex = res.indexOf('\n');

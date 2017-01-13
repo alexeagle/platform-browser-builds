@@ -31,6 +31,7 @@ export function setRootDomAdapter(adapter) {
 /**
  * Provides DOM operations in an environment-agnostic way.
  *
+ * \@security Tread carefully! Interacting with the DOM directly is dangerous and
  * can introduce XSS risks.
  * @abstract
  */
@@ -799,7 +800,10 @@ export class DomAdapter {
 function DomAdapter_tsickle_Closure_declarations() {
     /** @type {?} */
     DomAdapter.prototype.resourceLoaderType;
-    /** @type {?} */
+    /**
+     * \@internal
+     * @type {?}
+     */
     DomAdapter.prototype._attrToPropMap;
 }
 //# sourceMappingURL=dom_adapter.js.map

@@ -79,6 +79,7 @@ export function _resolveDefaultAnimationDriver() {
 /**
  * The ng module for the browser.
  *
+ * \@stable
  */
 export class BrowserModule {
     /**

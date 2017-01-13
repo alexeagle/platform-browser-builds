@@ -10,6 +10,7 @@ import { DomAdapter } from '../dom/dom_adapter';
 /**
  * A service that can be used to get and add meta tags.
  *
+ * \@experimental
  */
 export class Meta {
     /**

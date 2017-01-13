@@ -6,7 +6,10 @@
  * found in the LICENSE file at https://angular.io/license
  */
 import { NoOpAnimationPlayer } from '../private_import_core';
-class _NoOpAnimationDriver {
+/**
+ * \@experimental
+ */
+export class NoOpAnimationDriver {
     /**
      * @param {?} element
      * @param {?} startingStyles
@@ -22,6 +25,7 @@ class _NoOpAnimationDriver {
     }
 }
 /**
+ * \@experimental
  * @abstract
  */
 export class AnimationDriver {
@@ -38,7 +42,7 @@ export class AnimationDriver {
      */
     animate(element, startingStyles, keyframes, duration, delay, easing, previousPlayers) { }
 }
-AnimationDriver.NOOP = new _NoOpAnimationDriver();
+AnimationDriver.NOOP = new NoOpAnimationDriver();
 function AnimationDriver_tsickle_Closure_declarations() {
     /** @type {?} */
     AnimationDriver.NOOP;

@@ -11,6 +11,9 @@ import { getDOM } from '../dom_adapter';
  * @stable
  */
 export const /** @type {?} */ EVENT_MANAGER_PLUGINS = new OpaqueToken('EventManagerPlugins');
+/**
+ * \@stable
+ */
 export class EventManager {
     /**
      * @param {?} plugins
@@ -47,6 +50,7 @@ export class EventManager {
      */
     getZone() { return this._zone; }
     /**
+     * \@internal
      * @param {?} eventName
      * @return {?}
      */

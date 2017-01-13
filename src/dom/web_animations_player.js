@@ -65,12 +65,20 @@ export class WebAnimationsPlayer {
         });
         const /** @type {?} */ previousStyleProps = Object.keys(this.previousStyles);
         if (previousStyleProps.length) {
-            let /** @type {?} */ startingKeyframe = findStartingKeyframe(keyframes);
+            let /** @type {?} */ startingKeyframe = keyframes[0];
+            let /** @type {?} */ missingStyleProps = [];
             previousStyleProps.forEach(prop => {
-                if (isPresent(startingKeyframe[prop])) {
-                    startingKeyframe[prop] = this.previousStyles[prop];
+                if (!isPresent(startingKeyframe[prop])) {
+                    missingStyleProps.push(prop);
                 }
+                startingKeyframe[prop] = this.previousStyles[prop];
             });
+            if (missingStyleProps.length) {
+                for (let /** @type {?} */ i = 1; i < keyframes.length; i++) {
+                    let /** @type {?} */ kf = keyframes[i];
+                    missingStyleProps.forEach(prop => { kf[prop] = _computeStyle(this.element, prop); });
+                }
+            }
         }
         this._player = this._triggerWebAnimation(this.element, keyframes, this.options);
         this._finalKeyframe = _copyKeyframeStyles(keyframes[keyframes.length - 1]);
@@ -79,6 +87,7 @@ export class WebAnimationsPlayer {
         this._player.addEventListener('finish', () => this._onFinish());
     }
     /**
+     * \@internal
      * @param {?} element
      * @param {?} keyframes
      * @param {?} options
@@ -140,7 +149,11 @@ export class WebAnimationsPlayer {
     /**
      * @return {?}
      */
-    _resetDomPlayerState() { this._player.cancel(); }
+    _resetDomPlayerState() {
+        if (this._player) {
+            this._player.cancel();
+        }
+    }
     /**
      * @return {?}
      */
@@ -241,22 +254,5 @@ function _copyKeyframeStyles(styles) {
         }
     });
     return newStyles;
-}
-/**
- * @param {?} keyframes
- * @return {?}
- */
-function findStartingKeyframe(keyframes) {
-    let /** @type {?} */ startingKeyframe = keyframes[0];
-    // it's important that we find the LAST keyframe
-    // to ensure that style overidding is final.
-    for (let /** @type {?} */ i = 1; i < keyframes.length; i++) {
-        const /** @type {?} */ kf = keyframes[i];
-        const /** @type {?} */ offset = kf['offset'];
-        if (offset !== 0)
-            break;
-        startingKeyframe = kf;
-    }
-    return startingKeyframe;
 }
 //# sourceMappingURL=web_animations_player.js.map

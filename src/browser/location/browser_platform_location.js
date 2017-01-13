@@ -20,6 +20,7 @@ export class BrowserPlatformLocation extends PlatformLocation {
         this._init();
     }
     /**
+     * \@internal
      * @return {?}
      */
     _init() {

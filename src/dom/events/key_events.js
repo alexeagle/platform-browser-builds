@@ -15,6 +15,9 @@ const /** @type {?} */ MODIFIER_KEY_GETTERS = {
     'meta': (event) => event.metaKey,
     'shift': (event) => event.shiftKey
 };
+/**
+ * \@experimental
+ */
 export class KeyEventsPlugin extends EventManagerPlugin {
     constructor() {
         super();
@@ -105,6 +108,7 @@ export class KeyEventsPlugin extends EventManagerPlugin {
         };
     }
     /**
+     * \@internal
      * @param {?} keyName
      * @return {?}
      */

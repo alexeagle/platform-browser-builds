@@ -14,6 +14,7 @@ import { getDOM } from '../dom/dom_adapter';
  * (representing the `<title>` tag). Instead, this service can be used to set and get the current
  * title value.
  *
+ * \@experimental
  */
 export class Title {
     /**

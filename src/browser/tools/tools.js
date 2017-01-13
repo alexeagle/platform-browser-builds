@@ -19,6 +19,7 @@ const /** @type {?} */ context = (global);
  * 1. Try the change detection profiler `ng.profiler.timeChangeDetection()`
  *    then hit Enter.
  *
+ * \@experimental All debugging apis are currently experimental.
  * @param {?} ref
  * @return {?}
  */
@@ -29,6 +30,7 @@ export function enableDebugTools(ref) {
 /**
  * Disables Angular 2 tools.
  *
+ * \@experimental All debugging apis are currently experimental.
  * @return {?}
  */
 export function disableDebugTools() {

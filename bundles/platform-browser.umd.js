@@ -12,8 +12,11 @@
     var /** @type {?} */ DebugDomRootRenderer = core.__core_private__.DebugDomRootRenderer;
     var /** @type {?} */ NoOpAnimationPlayer = core.__core_private__.NoOpAnimationPlayer;
 
-    var _NoOpAnimationDriver = (function () {
-        function _NoOpAnimationDriver() {
+    /**
+     * \@experimental
+     */
+    var NoOpAnimationDriver = (function () {
+        function NoOpAnimationDriver() {
         }
         /**
          * @param {?} element
@@ -25,13 +28,14 @@
          * @param {?=} previousPlayers
          * @return {?}
          */
-        _NoOpAnimationDriver.prototype.animate = function (element, startingStyles, keyframes, duration, delay, easing, previousPlayers) {
+        NoOpAnimationDriver.prototype.animate = function (element, startingStyles, keyframes, duration, delay, easing, previousPlayers) {
             if (previousPlayers === void 0) { previousPlayers = []; }
             return new NoOpAnimationPlayer();
         };
-        return _NoOpAnimationDriver;
+        return NoOpAnimationDriver;
     }());
     /**
+     * \@experimental
      * @abstract
      */
     var AnimationDriver = (function () {
@@ -49,7 +53,7 @@
          * @return {?}
          */
         AnimationDriver.prototype.animate = function (element, startingStyles, keyframes, duration, delay, easing, previousPlayers) { };
-        AnimationDriver.NOOP = new _NoOpAnimationDriver();
+        AnimationDriver.NOOP = new NoOpAnimationDriver();
         return AnimationDriver;
     }());
 
@@ -167,6 +171,7 @@
     /**
      * Provides DOM operations in an environment-agnostic way.
      *
+     * \@security Tread carefully! Interacting with the DOM directly is dangerous and
      * can introduce XSS risks.
      * @abstract
      */
@@ -998,12 +1003,23 @@
             });
             var /** @type {?} */ previousStyleProps = Object.keys(this.previousStyles);
             if (previousStyleProps.length) {
-                var /** @type {?} */ startingKeyframe_1 = findStartingKeyframe(keyframes);
+                var /** @type {?} */ startingKeyframe_1 = keyframes[0];
+                var /** @type {?} */ missingStyleProps_1 = [];
                 previousStyleProps.forEach(function (prop) {
-                    if (isPresent(startingKeyframe_1[prop])) {
-                        startingKeyframe_1[prop] = _this.previousStyles[prop];
+                    if (!isPresent(startingKeyframe_1[prop])) {
+                        missingStyleProps_1.push(prop);
                     }
+                    startingKeyframe_1[prop] = _this.previousStyles[prop];
                 });
+                if (missingStyleProps_1.length) {
+                    var _loop_1 = function(i) {
+                        var /** @type {?} */ kf = keyframes[i];
+                        missingStyleProps_1.forEach(function (prop) { kf[prop] = _computeStyle(_this.element, prop); });
+                    };
+                    for (var /** @type {?} */ i = 1; i < keyframes.length; i++) {
+                        _loop_1(i);
+                    }
+                }
             }
             this._player = this._triggerWebAnimation(this.element, keyframes, this.options);
             this._finalKeyframe = _copyKeyframeStyles(keyframes[keyframes.length - 1]);
@@ -1012,6 +1028,7 @@
             this._player.addEventListener('finish', function () { return _this._onFinish(); });
         };
         /**
+         * \@internal
          * @param {?} element
          * @param {?} keyframes
          * @param {?} options
@@ -1077,7 +1094,11 @@
         /**
          * @return {?}
          */
-        WebAnimationsPlayer.prototype._resetDomPlayerState = function () { this._player.cancel(); };
+        WebAnimationsPlayer.prototype._resetDomPlayerState = function () {
+            if (this._player) {
+                this._player.cancel();
+            }
+        };
         /**
          * @return {?}
          */
@@ -1155,23 +1176,6 @@
         });
         return newStyles;
     }
-    /**
-     * @param {?} keyframes
-     * @return {?}
-     */
-    function findStartingKeyframe(keyframes) {
-        var /** @type {?} */ startingKeyframe = keyframes[0];
-        // it's important that we find the LAST keyframe
-        // to ensure that style overidding is final.
-        for (var /** @type {?} */ i = 1; i < keyframes.length; i++) {
-            var /** @type {?} */ kf = keyframes[i];
-            var /** @type {?} */ offset = kf['offset'];
-            if (offset !== 0)
-                break;
-            startingKeyframe = kf;
-        }
-        return startingKeyframe;
-    }
 
     var WebAnimationsDriver = (function () {
         function WebAnimationsDriver() {
@@ -1190,24 +1194,27 @@
             if (previousPlayers === void 0) { previousPlayers = []; }
             var /** @type {?} */ formattedSteps = [];
             var /** @type {?} */ startingStyleLookup = {};
-            if (isPresent(startingStyles) && startingStyles.styles.length > 0) {
+            if (isPresent(startingStyles)) {
                 startingStyleLookup = _populateStyles(startingStyles, {});
-                startingStyleLookup['offset'] = 0;
-                formattedSteps.push(startingStyleLookup);
             }
             keyframes.forEach(function (keyframe) {
                 var /** @type {?} */ data = _populateStyles(keyframe.styles, startingStyleLookup);
                 data['offset'] = Math.max(0, Math.min(1, keyframe.offset));
                 formattedSteps.push(data);
             });
-            // this is a special case when only styles are applied as an
-            // animation. When this occurs we want to animate from start to
-            // end with the same values. Removing the offset and having only
-            // start/end values is suitable enough for the web-animations API
-            if (formattedSteps.length == 1) {
-                var /** @type {?} */ start = formattedSteps[0];
-                start['offset'] = null;
-                formattedSteps = [start, start];
+            // Styling passed into element.animate() must always be balanced.
+            // The special cases below can occur if only style() calls exist
+            // within an animation or when a style() calls are used prior
+            // to a group() animation being issued or if the renderer is
+            // invoked by the user directly.
+            if (formattedSteps.length == 0) {
+                formattedSteps = [startingStyleLookup, startingStyleLookup];
+            }
+            else if (formattedSteps.length == 1) {
+                var /** @type {?} */ start = startingStyleLookup;
+                var /** @type {?} */ end = formattedSteps[0];
+                end['offset'] = null;
+                formattedSteps = [start, end];
             }
             var /** @type {?} */ playerOptions = {
                 'duration': duration,
@@ -1264,6 +1271,7 @@
     /**
      * Provides DOM operations in any browser environment.
      *
+     * \@security Tread carefully! Interacting with the DOM directly is dangerous and
      * can introduce XSS risks.
      * @abstract
      */
@@ -1454,7 +1462,6 @@
                     console.error(error);
                 }
                 else {
-                    // tslint:disable-next-line:no-console
                     console.log(error);
                 }
             }
@@ -1465,7 +1472,6 @@
          */
         BrowserDomAdapter.prototype.log = function (error) {
             if (window.console) {
-                // tslint:disable-next-line:no-console
                 window.console.log && window.console.log(error);
             }
         };
@@ -2262,7 +2268,7 @@
     }
 
     /**
-     * @license undefined
+     * @license
      * Copyright Google Inc. All Rights Reserved.
      *
      * Use of this source code is governed by an MIT-style license that can be
@@ -2297,6 +2303,7 @@
             this._init();
         }
         /**
+         * \@internal
          * @return {?}
          */
         BrowserPlatformLocation.prototype._init = function () {
@@ -2405,6 +2412,7 @@
     /**
      * A service that can be used to get and add meta tags.
      *
+     * \@experimental
      */
     var Meta = (function () {
         /**
@@ -2623,6 +2631,7 @@
      * (representing the `<title>` tag). Instead, this service can be used to set and get the current
      * title value.
      *
+     * \@experimental
      */
     var Title = (function () {
         function Title() {
@@ -2700,6 +2709,9 @@
      * @stable
      */
     var /** @type {?} */ EVENT_MANAGER_PLUGINS = new core.OpaqueToken('EventManagerPlugins');
+    /**
+     * \@stable
+     */
     var EventManager = (function () {
         /**
          * @param {?} plugins
@@ -2737,6 +2749,7 @@
          */
         EventManager.prototype.getZone = function () { return this._zone; };
         /**
+         * \@internal
          * @param {?} eventName
          * @return {?}
          */
@@ -2864,6 +2877,7 @@
             this._hostNodes.add(doc.head);
         }
         /**
+         * \@internal
          * @param {?} styles
          * @param {?} host
          * @return {?}
@@ -3305,7 +3319,10 @@
          */
         DomRenderer.prototype.animate = function (element, startingStyles, keyframes, duration, delay, easing, previousPlayers) {
             if (previousPlayers === void 0) { previousPlayers = []; }
-            return this._animationDriver.animate(element, startingStyles, keyframes, duration, delay, easing, previousPlayers);
+            if (this._rootRenderer.document.body.contains(element)) {
+                return this._animationDriver.animate(element, startingStyles, keyframes, duration, delay, easing, previousPlayers);
+            }
+            return new NoOpAnimationPlayer();
         };
         return DomRenderer;
     }());
@@ -3575,6 +3592,9 @@
      * @experimental
      */
     var /** @type {?} */ HAMMER_GESTURE_CONFIG = new core.OpaqueToken('HammerGestureConfig');
+    /**
+     * \@experimental
+     */
     var HammerGestureConfig = (function () {
         function HammerGestureConfig() {
             this.events = [];
@@ -3676,6 +3696,9 @@
         'meta': function (event) { return event.metaKey; },
         'shift': function (event) { return event.shiftKey; }
     };
+    /**
+     * \@experimental
+     */
     var KeyEventsPlugin = (function (_super) {
         __extends$7(KeyEventsPlugin, _super);
         function KeyEventsPlugin() {
@@ -3767,6 +3790,7 @@
             };
         };
         /**
+         * \@internal
          * @param {?} keyName
          * @return {?}
          */
@@ -4243,10 +4267,12 @@
      * does not start with a suspicious protocol, or an HTML snippet that does not contain dangerous
      * code. The sanitizer leaves safe values intact.
      *
+     * \@security Calling any of the `bypassSecurityTrust...` APIs disables Angular's built-in
      * sanitization for the value passed in. Carefully check and audit all values and code paths going
      * into this call. Make sure any user data is appropriately escaped for this security context.
      * For more detail, see the [Security Guide](http://g.co/ng/security).
      *
+     * \@stable
      * @abstract
      */
     var DomSanitizer = (function () {
@@ -4550,6 +4576,7 @@
     /**
      * The ng module for the browser.
      *
+     * \@stable
      */
     var BrowserModule = (function () {
         /**
@@ -4698,6 +4725,7 @@
      * 1. Try the change detection profiler `ng.profiler.timeChangeDetection()`
      *    then hit Enter.
      *
+     * \@experimental All debugging apis are currently experimental.
      * @param {?} ref
      * @return {?}
      */
@@ -4708,6 +4736,7 @@
     /**
      * Disables Angular 2 tools.
      *
+     * \@experimental All debugging apis are currently experimental.
      * @return {?}
      */
     function disableDebugTools() {
@@ -4719,6 +4748,7 @@
     /**
      * Predicates for use with {\@link DebugElement}'s query functions.
      *
+     * \@experimental All debugging apis are currently experimental.
      */
     var By = (function () {
         function By() {

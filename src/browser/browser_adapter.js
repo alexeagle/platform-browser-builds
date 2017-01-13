@@ -100,7 +100,6 @@ export class BrowserDomAdapter extends GenericBrowserDomAdapter {
                 console.error(error);
             }
             else {
-                // tslint:disable-next-line:no-console
                 console.log(error);
             }
         }
@@ -111,7 +110,6 @@ export class BrowserDomAdapter extends GenericBrowserDomAdapter {
      */
     log(error) {
         if (window.console) {
-            // tslint:disable-next-line:no-console
             window.console.log && window.console.log(error);
         }
     }

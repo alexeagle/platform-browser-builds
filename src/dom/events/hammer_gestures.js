@@ -51,6 +51,9 @@ const /** @type {?} */ EVENT_NAMES = {
  * @experimental
  */
 export const /** @type {?} */ HAMMER_GESTURE_CONFIG = new OpaqueToken('HammerGestureConfig');
+/**
+ * \@experimental
+ */
 export class HammerGestureConfig {
     constructor() {
         this.events = [];

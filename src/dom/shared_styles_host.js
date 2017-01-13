@@ -52,9 +52,15 @@ function SharedStylesHost_tsickle_Closure_declarations() {
      * @type {?}
      */
     SharedStylesHost.ctorParameters;
-    /** @type {?} */
+    /**
+     * \@internal
+     * @type {?}
+     */
     SharedStylesHost.prototype._styles;
-    /** @type {?} */
+    /**
+     * \@internal
+     * @type {?}
+     */
     SharedStylesHost.prototype._stylesSet;
 }
 export class DomSharedStylesHost extends SharedStylesHost {
@@ -67,6 +73,7 @@ export class DomSharedStylesHost extends SharedStylesHost {
         this._hostNodes.add(doc.head);
     }
     /**
+     * \@internal
      * @param {?} styles
      * @param {?} host
      * @return {?}
